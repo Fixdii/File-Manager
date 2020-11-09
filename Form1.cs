@@ -104,6 +104,51 @@ namespace File_Manager
             treeView1.EndUpdate();
         }
 
-       
+        private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            TreeNode selectedNode = e.Node;
+            string fullPath = selectedNode.FullPath;
+            DirectoryInfo di = new DirectoryInfo(fullPath);
+            FileInfo[] fiArray;
+            DirectoryInfo[] diArray;
+
+            try
+            {
+                fiArray = di.GetFiles();
+                diArray = di.GetDirectories();
+            }
+            catch
+            {
+                return;
+            }
+
+            listView1.Items.Clear();
+
+            foreach (DirectoryInfo dirInfo in diArray)
+            {
+                ListViewItem lvi = new ListViewItem(dirInfo.Name);
+                lvi.SubItems.Add("0");
+                lvi.SubItems.Add(dirInfo.LastWriteTime.ToString());
+                lvi.ImageIndex = 0;
+
+                listView1.Items.Add(lvi);
+            }
+
+
+            foreach (FileInfo fileInfo in fiArray)
+            {
+                ListViewItem lvi = new ListViewItem(fileInfo.Name);
+                lvi.Tag = fileInfo.FullName;
+                lvi.Tag = fileInfo.FullName;
+                lvi.SubItems.Add(fileInfo.Length.ToString());
+                lvi.SubItems.Add(fileInfo.LastWriteTime.ToString());
+
+                string filenameExtension =
+                  Path.GetExtension(fileInfo.Name).ToLower();
+                listView1.Items.Add(lvi);
+            }
+        }
+
     }
+
 }
