@@ -6,6 +6,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -13,10 +14,14 @@ namespace File_Manager
 {
     public partial class Form1 : Form
     {
+        public static string fullPath1 = null;
+        // public TreeNode Node;
+
+
         public Form1()
         {
             InitializeComponent();
-          //  GetDat.EventHandler = new GetDat.GetData(GetDataFunc);
+            GetDat.EventHandler = new GetDat.GetData(GetDataFunc);
             DriveTreeInit();
         }
 
@@ -24,7 +29,7 @@ namespace File_Manager
         public void DriveTreeInit()
         {
             //получить список логических дисков
-            string[] drivesArray = Directory.GetLogicalDrives();  
+            string[] drivesArray = Directory.GetLogicalDrives();
 
             treeView1.BeginUpdate();
             treeView1.Nodes.Clear();
@@ -69,27 +74,7 @@ namespace File_Manager
             }
         }
 
-        /* void GetDataFunc(string name, DialogResult dr)
-         {
-             if (dr == DialogResult.OK)
-             {
-                 try
-                 {
-                     // пробуем переименовать
 
-                     string fullPath = null;
-                     System.IO.Directory.Move(fullPath + "\\" + listView1.SelectedItems[0].Text, fullPath + "\\" + name);
-                     listView1.SelectedItems[0].Text = name;
-                     //MessageBox.Show(fullPath + "\\" + listView1.SelectedItems[0].Text);
-                     //MessageBox.Show(fullPath + "\\" + name);
-                 }
-                 catch (Exception ex)
-                 {
-                     MessageBox.Show(ex.Message);
-                 }
-             }
-
-         }*/
 
         ///Обработчик события BeforeExpand
         private void treeView1_OnBeforeExpand(object sender, TreeViewCancelEventArgs e)
@@ -107,8 +92,8 @@ namespace File_Manager
         private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
         {
             TreeNode selectedNode = e.Node;
-            string fullPath = selectedNode.FullPath;
-            DirectoryInfo di = new DirectoryInfo(fullPath);
+            fullPath1 = selectedNode.FullPath;
+            DirectoryInfo di = new DirectoryInfo(fullPath1);
             FileInfo[] fiArray;
             DirectoryInfo[] diArray;
 
@@ -144,11 +129,86 @@ namespace File_Manager
                 lvi.SubItems.Add(fileInfo.LastWriteTime.ToString());
 
                 string filenameExtension =
-                  Path.GetExtension(fileInfo.Name).ToLower();
+                Path.GetExtension(fileInfo.Name).ToLower();
                 listView1.Items.Add(lvi);
             }
         }
 
+        void GetDataFunc(string Path2, DialogResult dr)
+        {
+            if (dr == DialogResult.OK)
+            {
+                try
+                {
+                    string Path1 = fullPath1 + "//" + listView1.SelectedItems[0].Text;
+                    Console.WriteLine(Path1.Contains(".rpf"));
+                    //System.IO.Directory.Move(fullPath + "\\" + listView1.SelectedItems[0].Text, Path2);
+                    // listView1.SelectedItems[0].Text = name;
+                    new Thread(() => { File.Copy(Path1, Path2); }).Start();
+                    //MessageBox.Show(fullPath + "\\" + listView1.SelectedItems[0].Text);
+                    //MessageBox.Show(fullPath + "\\" + name);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+
+        }
+
+
+        private void listView1_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                contextMenuStrip1.Show(MousePosition.X, MousePosition.Y);
+            }
+        }
+
+        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (Form2 fm2 = new Form2())
+            {
+                try
+                {
+                    //прописать путь
+                    string Path1 = fullPath1 + listView1.SelectedItems[0].Text;
+                    SetDat.EventHandler("Новый путь + " + listView1.SelectedItems[0].Text);
+                    fm2.ShowDialog();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+
+            }
+        }
+        private void exitToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        void GetDataFuncRename(string name, DialogResult dr)
+        {
+            if (dr == DialogResult.OK)
+            {
+                try
+                {
+                    // пробуем переименовать
+
+                    System.IO.Directory.Move(fullPath1 + "\\" + listView1.SelectedItems[0].Text, fullPath1 + "\\" + name);
+                    listView1.SelectedItems[0].Text = name;
+                    //MessageBox.Show(fullPath + "\\" + listView1.SelectedItems[0].Text);
+                    //MessageBox.Show(fullPath + "\\" + name);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+        }
+
+      
+        }
     }
 
-}
